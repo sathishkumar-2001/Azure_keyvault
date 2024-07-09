@@ -25,5 +25,64 @@ helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver
 helm repo add csi-secrets-store-provider-azure https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
 helm install csi-secrets-store-provider-azure csi-secrets-store-provider-azure/csi-secrets-store-provider-azure --namespace kube-system
 
+# Deploy a Pod That Uses the Secrets from the Key Vault
+
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-keyvault
+spec:
+  provider: azure
+  secretObjects:
+  - secretName: kv-secrets
+    type: Opaque
+    data:
+    - objectName: <YourSecretName>
+      key: secret-key
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"
+    userAssignedIdentityID: <YourManagedIdentityClientId>
+    keyvaultName: <YourKeyVaultName>
+    objects: |
+      array:
+        - |
+          objectName: <YourSecretName>
+          objectType: secret
+    tenantId: <YourTenantId>
+
+
+kubectl apply -f secret-provider-class.yaml
+
+
+# Create a pod that mounts the secrets:
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: keyvault-secrets-pod
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    command: [ "/bin/sh", "-c", "sleep 3600" ]
+    volumeMounts:
+    - name: secrets-store-inline
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+  volumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "azure-keyvault"
+
+
+kubectl apply -f pod-with-secrets.yaml
+
+# print the secret in the pod
+kubectl exec -it keyvault-secrets-pod -- cat /mnt/secrets-store/<YourSecretName>
+
 
 
