@@ -51,7 +51,7 @@ spec:
           objectType: secret
     tenantId: <YourTenantId>
 
-
+# Deploy the SecretProviderClass to your AKS cluster:
 kubectl apply -f secret-provider-class.yaml
 
 
@@ -78,7 +78,7 @@ spec:
       volumeAttributes:
         secretProviderClass: "azure-keyvault"
 
-
+# Deploy the pod to your AKS cluster:
 kubectl apply -f pod-with-secrets.yaml
 
 # print the secret in the pod
