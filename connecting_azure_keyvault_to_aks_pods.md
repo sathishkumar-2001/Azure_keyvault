@@ -14,7 +14,6 @@ az identity create --name <YourManagedIdentityName> --resource-group <YourResour
 # set policy for keyvault
 az keyvault set-policy --name <YourKeyVaultName> --resource-group <YourResourceGroupName> --object-id <YourManagedIdentityObjectId> --secret-permissions get
 
-
 # Add the Azure Key Vault Provider for Secrets Store CSI Driver Helm repository
 helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
 
